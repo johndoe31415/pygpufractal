@@ -44,12 +44,14 @@ class GLFragmentShaderProgram(object):
 #		print("Setting uniform \"%s\" (%d) to %s" % (uniform_name, uniform, str(value)))
 		if isinstance(value, tuple) and (len(value) == 2):
 			glUniform2f(uniform, value[0], value[1])
+		elif isinstance(value, list) and (len(value) > 0) and isinstance(value[0], tuple) and (len(value[0]) == 2):
+			glUniform2fv(uniform, len(value), value)
 		elif isinstance(value, int):
 			glUniform1i(uniform, value)
 		elif isinstance(value, float):
 			glUniform1f(uniform, value)
 		else:
-			raise Exception("Do not know how to set uniform %s to value of unknown type: %s" % (uniform_name, str(value)))
+			raise Exception("Do not know how to set uniform \"%s\" to value of unknown type: %s" % (uniform_name, str(value)))
 
 	def _compile_shader(self, shader_source, shader_type):
 		shader = glCreateShader(shader_type)
@@ -63,6 +65,9 @@ class GLFragmentShaderProgram(object):
 	@property
 	def program(self):
 		return self._program
+
+	def use(self):
+		glUseProgram(self.program)
 
 class TrivialFragmentShaderProgram(GLFragmentShaderProgram):
 	"""Shader that colors entire screen red."""

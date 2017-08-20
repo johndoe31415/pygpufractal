@@ -27,9 +27,10 @@ from OpenGL.GLUT import *
 from OpenGL.GLU import *
 from ColorMixer import ColorMixer
 from geo import Viewport2d
+from NewtonSolver import Polynomial, NewtonSolver
 
 class MandelbrotFragmentShaderProgram(GLFragmentShaderProgram):
-	def __init__(self):
+	def __init__(self, max_iterations = 40, cutoff = 10.0):
 		GLFragmentShaderProgram.__init__(self, """\
 		uniform sampler1D tex;
 		uniform vec2 center, size;
@@ -59,16 +60,87 @@ class MandelbrotFragmentShaderProgram(GLFragmentShaderProgram):
 			gl_FragColor = texture1D(tex, flt_iteration);
 		}
 		""")
+		self._max_iterations = max_iterations
+		self._cutoff = cutoff
+
+	def use(self):
+		GLFragmentShaderProgram.use(self)
+		self.set_uniform("max_iterations", self._max_iterations)
+		self.set_uniform("cutoff", self._cutoff)
+
+class NewtonFragmentShaderProgram(GLFragmentShaderProgram):
+	def __init__(self, polynomial, max_iterations = 50, cutoff = 1e-4):
+		GLFragmentShaderProgram.__init__(self, """\
+		#define cplx_mul(a, b)		vec2(a.x * b.x - a.y * b.y, a.x * b.y + a.y * b.x)
+		#define cplx_div(a, b)		vec2(((a.x * b.x + a.y * b.y) / (b.x * b.x + b.y * b.y)), ((a.y * b.x - a.x * b.y) / (b.x * b.x + b.y * b.y)))
+		#define cplx_abs(x)			length(x)
+
+		uniform sampler2D tex;
+		uniform vec2 center, size;
+		uniform vec2 poly_coeffs[16];
+		uniform vec2 poly_dx_coeffs[15];
+		uniform int max_iterations;
+		uniform float cutoff;
+		uniform int poly_degree;
+
+		vec2 cplx_pow(vec2 base, float exponent) {
+			float absval = pow(cplx_abs(base), exponent);
+			float arg = exponent * atan2(base.y, base.x);
+			return vec2(absval * cos(arg), absval * sin(arg));
+		}
+
+		vec2 poly_eval(vec2 coeffs[], int coeff_cnt, vec2 x) {
+			vec2 result = vec2(0, 0);
+			for (int exponent = 0; exponent < coeff_cnt; exponent++) {
+				result = result + cplx_mul(coeffs[exponent], cplx_pow(x, exponent));
+			}
+			return result;
+		}
+
+		void main() {
+			vec2 c;
+			c.x = center.x + (size.x * (gl_TexCoord[0].x - 0.5));
+			c.y = center.y + (size.y * (gl_TexCoord[0].y - 0.5));
+
+			for (int i = 0; i < max_iterations; i++) {
+				vec2 new_c = c - cplx_div(poly_eval(poly_coeffs, poly_degree + 1, c), poly_eval(poly_dx_coeffs, poly_degree, c));
+				float err = length(new_c - c);
+				c = new_c;
+				if (err < cutoff) {
+					break;
+				}
+			}
+
+			gl_FragColor = vec4(c.x, c.y, 0, 1);
+		}
+		""")
+		self._poly = polynomial
+		self._max_iterations = max_iterations
+		self._cutoff = cutoff
+
+	@property
+	def poly(self):
+		return self._poly
+
+	def use(self):
+		GLFragmentShaderProgram.use(self)
+		self.set_uniform("max_iterations", self._max_iterations)
+		self.set_uniform("cutoff", self._cutoff)
+		self.set_uniform("poly_coeffs", self._poly.coeffs)
+		self.set_uniform("poly_dx_coeffs", self._poly.dx().coeffs)
+		self.set_uniform("poly_degree", self._poly.degree)
+
 
 class FractalGlutApplication(GlutApplication):
 	def __init__(self):
 		GlutApplication.__init__(self, window_title = "Python Fractals")
 		self._lut_texture = self._create_gradient_texture("rainbow", 256)
-		self._shader_pgm = MandelbrotFragmentShaderProgram()
-		self._viewport = Viewport2d(device_width = self.width, device_height = self.height, logical_center_x = -0.4, logical_center_y = 0, logical_width = 3, logical_height = 2)
+		#self._shader_pgm = MandelbrotFragmentShaderProgram()
+		self._shader_pgm = NewtonFragmentShaderProgram(Polynomial(-1, 0, 0, 1))
+		print(self._shader_pgm.poly)
+		#self._viewport = Viewport2d(device_width = self.width, device_height = self.height, logical_center_x = -0.4, logical_center_y = 0, logical_width = 3, logical_height = 2)
+		self._viewport = Viewport2d(device_width = self.width, device_height = self.height, logical_center_x = 0, logical_center_y = 0, logical_width = 3, logical_height = 2)
 		self._drag_viewport = None
-		self._max_iterations = 40
-		self._cutoff = 10.0
 		self._dirty = True
 
 	def _create_gradient_texture(self, palette, data_points):
@@ -131,11 +203,9 @@ class FractalGlutApplication(GlutApplication):
 		glMatrixMode(GL_MODELVIEW);
 		glLoadIdentity()
 
-		glUseProgram(self._shader_pgm.program)
+		self._shader_pgm.use()
 		self._shader_pgm.set_uniform("center", tuple(self._viewport.logical_center))
 		self._shader_pgm.set_uniform("size", tuple(self._viewport.logical_size))
-		self._shader_pgm.set_uniform("max_iterations", self._max_iterations)
-		self._shader_pgm.set_uniform("cutoff", self._cutoff)
 		glBindTexture(GL_TEXTURE_1D, self._lut_texture)
 		glEnable(GL_TEXTURE_1D)
 		glBegin(GL_QUADS)
