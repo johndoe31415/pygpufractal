@@ -22,11 +22,23 @@
 
 import sys
 import math
+import enum
 
 from PnmPicture import PnmPicture
 from OpenGL.GL import *
 from OpenGL.GLUT import *
 from OpenGL.GLU import *
+
+class MouseButton(enum.IntEnum):
+	LeftButton = 0
+	MiddleButton = 1
+	RightButton = 2
+	WheelUp = 3
+	WheelDown = 4
+
+class MouseButtonAction(enum.IntEnum):
+	ButtonDown = 0
+	ButtonUp = 1
 
 class GlutApplication(object):
 	def __init__(self, window_title = "Unnamed Window", initial_size = (640, 480), initial_pos = (200, 200)):
@@ -43,8 +55,9 @@ class GlutApplication(object):
 		glutDisplayFunc(self._draw_gl_scene)
 		glutIdleFunc(self._idle)
 		glutKeyboardFunc(self._gl_keyboard)
-		glutMouseFunc(self._gl_mouse)
+		glutMouseFunc(self._gl_mouse_raw)
 		glutMotionFunc(self._gl_motion)
+		glutReshapeFunc(self._gl_reshape)
 		self._init_gl(*initial_size)
 
 	@property
@@ -64,14 +77,24 @@ class GlutApplication(object):
 	def _idle(self):
 		pass
 
-	def _gl_keyboard(self, key, mouse_x, mouse_y):
+	def _gl_keyboard(self, key, pos_x, pos_y):
 		pass
 
-	def _gl_mouse(self):
+	def _gl_mouse(self, mouse_button, mouse_button_action, pos_x, pos_y):
 		pass
 
-	def _gl_motion(self):
+	def _gl_mouse_raw(self, mouse_button, mouse_button_action, pos_x, pos_y):
+		mouse_button = MouseButton(mouse_button)
+		mouse_button_action = MouseButtonAction(mouse_button_action)
+		return self._gl_mouse(mouse_button, mouse_button_action, pos_x, pos_y)
+
+	def _gl_motion(self, pos_x, pos_y):
 		pass
+
+	def _gl_reshape(self, new_width, new_height):
+		self._width = new_width
+		self._height = new_height
+		self._draw_gl_scene()
 
 	def _init_gl(self, width, height):
 		glClearColor(1.0, 1.0, 1.0, 0.0)
