@@ -38,6 +38,14 @@ class Vector2d(object):
 	def length(self):
 		return math.sqrt((self.x ** 2) + (self.y ** 2))
 
+	def comp_div(self, other):
+		"""Component-wise division."""
+		return Vector2d(self.x / other.x, self.y / other.y)
+
+	def comp_mul(self, other):
+		"""Component-wise multiplication."""
+		return Vector2d(self.x * other.x, self.y * other.y)
+
 	def __mul__(self, scalar):
 		return Vector2d(self.x * scalar, self.y * scalar)
 
@@ -57,4 +65,11 @@ class Vector2d(object):
 	def __neg__(self):
 		return Vector2d(-self.x, -self.y)
 
+	def __eq__(self, other):
+		return (self.x == other.x) and (self.y == other.y)
 
+	def __neq__(self, other):
+		return not (self == other)
+
+	def __str__(self):
+		return "(%.3f, %.3f)" % (self.x, self.y)

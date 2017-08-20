@@ -57,3 +57,19 @@ class Vector2dTests(unittest.TestCase):
 		self.assertAlmostEqual(Vector2d(0, 1).length(), 1)
 		self.assertAlmostEqual(Vector2d(1, 1).length(), 1.4142135623730951)
 		self.assertAlmostEqual(Vector2d(1, 10).length(), 10.04987562112089)
+
+	def test_comp_div(self):
+		v = Vector2d(-1, 5).comp_div(Vector2d(9, 12))
+		self.assertAlmostEqual(v.x, -1 / 9)
+		self.assertAlmostEqual(v.y, 5 / 12)
+
+	def test_comp_mul(self):
+		v = Vector2d(-1, 5).comp_mul(Vector2d(9, 12))
+		self.assertAlmostEqual(v.x, -1 * 9)
+		self.assertAlmostEqual(v.y, 5 * 12)
+
+	def test_eq_neq(self):
+		self.assertEqual(Vector2d(99, 3), Vector2d(99, 3))
+		self.assertNotEqual(Vector2d(99, 3), Vector2d(99, 3.1))
+		self.assertNotEqual(Vector2d(99, 3), Vector2d(99.1, 3))
+

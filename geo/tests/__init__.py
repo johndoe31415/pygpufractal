@@ -20,3 +20,4 @@
 #       Johannes Bauer <JohannesBauer@gmx.de>
 
 from .Vector2dTests import Vector2dTests
+from .Viewport2dTests import Viewport2dTests
