@@ -107,6 +107,18 @@ class GlutApplication(object):
 		gluPerspective(45.0, width / height, 0.1, 100.0)
 		glMatrixMode(GL_MODELVIEW)
 
+	def create_texture_1d_rgb(self, data):
+		assert(isinstance(data, bytes) or isinstance(data, bytearray))
+		assert((len(data) % 3) == 0)
+		texture_id = glGenTextures(1)
+		glBindTexture(GL_TEXTURE_1D, texture_id)
+		glTexParameterf(GL_TEXTURE_1D, GL_TEXTURE_WRAP_S, GL_CLAMP)
+		glTexParameterf(GL_TEXTURE_1D, GL_TEXTURE_WRAP_T, GL_CLAMP)
+		glTexParameterf(GL_TEXTURE_1D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
+		glTexParameterf(GL_TEXTURE_1D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
+		glTexImage1D(GL_TEXTURE_1D, 0, GL_RGB, len(data) // 3, 0, GL_RGB, GL_UNSIGNED_BYTE, data)
+		return texture_id
+
 	def load_texture_2d(self, pnm_image):
 		pnm = PnmPicture().readfile(pnm_image)
 		texture_id = glGenTextures(1)

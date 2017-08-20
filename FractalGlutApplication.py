@@ -25,11 +25,12 @@ from GLFragmentShader import GLFragmentShaderProgram
 from OpenGL.GL import *
 from OpenGL.GLUT import *
 from OpenGL.GLU import *
+from ColorMixer import ColorMixer
 
 class MandelbrotFragmentShaderProgram(GLFragmentShaderProgram):
 	def __init__(self):
 		GLFragmentShaderProgram.__init__(self, """\
-		uniform sampler2D tex;
+		uniform sampler1D tex;
 		uniform vec2 center, size;
 		uniform int max_iterations;
 		uniform float cutoff;
@@ -54,19 +55,29 @@ class MandelbrotFragmentShaderProgram(GLFragmentShaderProgram):
 			}
 
 			float flt_iteration = iteration / float(max_iterations - 1);
-			gl_FragColor = vec4(flt_iteration, 0, 0, 1);
+			gl_FragColor = texture1D(tex, flt_iteration);
 		}
 		""")
 
 class FractalGlutApplication(GlutApplication):
 	def __init__(self):
 		GlutApplication.__init__(self, window_title = "Python Fractals")
-		self._lut_texture = self.load_texture_2d("texture.pnm")
+#		self._lut_texture = self.load_texture_2d("texture.pnm")
+#		self._lut_texture = self.create_texture_1d_rgb(b"aaabbbcccdddeeefffggghhhiii")
+		self._lut_texture = self._create_gradient_texture("rainbow", 256)
 		self._shader_pgm = MandelbrotFragmentShaderProgram()
 		self._center = (-0.4, 0)
 		self._zoom = 1 / 250
 		self._max_iterations = 20
 		self._cutoff = 10.0;
+
+	def _create_gradient_texture(self, palette, data_points):
+		data = bytearray()
+		color_mixer = ColorMixer(palette)
+		for i in range(data_points):
+			pixel = color_mixer[i / (data_points - 1)]
+			data += bytes(pixel)
+		return self.create_texture_1d_rgb(data)
 
 	def _gl_keyboard(self, key, pos_x, pos_y):
 		if key == b"\x1b":
@@ -93,8 +104,8 @@ class FractalGlutApplication(GlutApplication):
 		self._shader_pgm.set_uniform("size", size)
 		self._shader_pgm.set_uniform("max_iterations", self._max_iterations)
 		self._shader_pgm.set_uniform("cutoff", self._cutoff)
-		glBindTexture(GL_TEXTURE_2D, self._lut_texture)
-		glEnable(GL_TEXTURE_2D)
+		glBindTexture(GL_TEXTURE_1D, self._lut_texture)
+		glEnable(GL_TEXTURE_1D)
 		glBegin(GL_QUADS)
 		glTexCoord2f(-1, -1)
 		glVertex2f(-1, -1)
