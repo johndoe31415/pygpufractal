@@ -32,6 +32,8 @@ from NewtonSolver import Polynomial, NewtonSolver
 class MandelbrotFragmentShaderProgram(GLFragmentShaderProgram):
 	def __init__(self, max_iterations = 40, cutoff = 10.0):
 		GLFragmentShaderProgram.__init__(self, """\
+		#define cplx_mul(a, b)		vec2(a.x * b.x - a.y * b.y, a.x * b.y + a.y * b.x)
+
 		uniform sampler1D tex;
 		uniform vec2 center, size;
 		uniform int max_iterations;
@@ -43,17 +45,13 @@ class MandelbrotFragmentShaderProgram(GLFragmentShaderProgram):
 			c.y = center.y + (size.y * (gl_TexCoord[0].y - 0.5));
 
 			int iteration;
-			vec2 z = c;
+			vec2 cur = c;
 			for (iteration = 0; iteration < max_iterations; iteration++) {
-				float x = (z.x * z.x - z.y * z.y) + c.x;
-				float y = (z.y * z.x + z.x * z.y) + c.y;
-
-				float abs_value = x * x + y * y;
+				cur = cplx_mul(cur, cur) + c;
+				float abs_value = length(cur);
 				if (abs_value > cutoff) {
 					break;
 				}
-				z.x = x;
-				z.y = y;
 			}
 
 			float flt_iteration = iteration / float(max_iterations - 1);
@@ -157,11 +155,10 @@ class FractalGlutApplication(GlutApplication):
 	def __init__(self):
 		GlutApplication.__init__(self, window_title = "Python Fractals")
 		self._lut_texture = self._create_gradient_texture("rainbow", 256)
-		#self._shader_pgm = MandelbrotFragmentShaderProgram()
-		self._shader_pgm = NewtonFragmentShaderProgram(Polynomial(-2, complex(-0.1, 0.1), complex(0.5, 0.2), complex(-1, 0.4), complex(0.3, -0.1), complex(0.1, 0.1)))
-		print(self._shader_pgm.poly)
-		#self._viewport = Viewport2d(device_width = self.width, device_height = self.height, logical_center_x = -0.4, logical_center_y = 0, logical_width = 3, logical_height = 2)
-		self._viewport = Viewport2d(device_width = self.width, device_height = self.height, logical_center_x = 0, logical_center_y = 0, logical_width = 3, logical_height = 2)
+		self._shader_pgm = MandelbrotFragmentShaderProgram()
+		self._viewport = Viewport2d(device_width = self.width, device_height = self.height, logical_center_x = -0.4, logical_center_y = 0, logical_width = 3, logical_height = 2)
+		#self._shader_pgm = NewtonFragmentShaderProgram(Polynomial(-2, complex(-0.1, 0.1), complex(0.5, 0.2), complex(-1, 0.4), complex(0.3, -0.1), complex(0.1, 0.1)))
+		#self._viewport = Viewport2d(device_width = self.width, device_height = self.height, logical_center_x = 0, logical_center_y = 0, logical_width = 3, logical_height = 2)
 		self._drag_viewport = None
 		self._dirty = True
 
