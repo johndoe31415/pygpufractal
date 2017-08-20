@@ -95,6 +95,9 @@ class FractalGlutApplication(GlutApplication):
 				self._drag_viewport = None
 			self._dirty = True
 
+	def _gl_reshape(self):
+		self._viewport.set_device_size(self.width, self.height)
+
 	def _gl_mouse(self, mouse_button, mouse_button_action, device_x, device_y):
 		device_y = self.height - device_y
 		if mouse_button_action == MouseButtonAction.ButtonDown:

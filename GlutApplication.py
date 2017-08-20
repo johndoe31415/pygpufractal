@@ -60,7 +60,7 @@ class GlutApplication(object):
 		glutKeyboardFunc(self._gl_keyboard)
 		glutMouseFunc(self._gl_mouse_raw)
 		glutMotionFunc(self._gl_motion_raw)
-		glutReshapeFunc(self._gl_reshape)
+		glutReshapeFunc(self._gl_reshape_raw)
 		self._init_gl(*initial_size)
 
 	@property
@@ -119,9 +119,13 @@ class GlutApplication(object):
 			self._drag_signalled = True
 		self._drag_motion(self._drag_button, self._drag_origin[0], self._drag_origin[1], pos_x, pos_y, finished = False)
 
-	def _gl_reshape(self, new_width, new_height):
+	def _gl_reshape(self):
+		pass
+
+	def _gl_reshape_raw(self, new_width, new_height):
 		self._width = new_width
 		self._height = new_height
+		self._gl_reshape()
 		self._draw_gl_scene()
 
 	def _init_gl(self, width, height):
