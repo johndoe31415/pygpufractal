@@ -53,8 +53,7 @@ class MandelbrotFragmentShaderProgram(GLFragmentShaderProgram):
 				z.y = y;
 			}
 
-
-			float flt_iteration = iteration / 19.0;
+			float flt_iteration = iteration / float(max_iterations - 1);
 			gl_FragColor = vec4(flt_iteration, 0, 0, 1);
 		}
 		""")
@@ -65,9 +64,13 @@ class FractalGlutApplication(GlutApplication):
 		self._lut_texture = self.load_texture_2d("texture.pnm")
 		self._shader_pgm = MandelbrotFragmentShaderProgram()
 		self._center = (-0.4, 0)
-		self._size = (7 * 0.4, 7 * 0.3)
-		self._max_iterations = 1000
+		self._zoom = 1 / 250
+		self._max_iterations = 20
 		self._cutoff = 10.0;
+
+	def _gl_keyboard(self, key, pos_x, pos_y):
+		if key == b"\x1b":
+			sys.exit(0)
 
 	def _draw_gl_scene(self):
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
@@ -86,7 +89,8 @@ class FractalGlutApplication(GlutApplication):
 
 		glUseProgram(self._shader_pgm.program)
 		self._shader_pgm.set_uniform("center", self._center)
-		self._shader_pgm.set_uniform("size", self._size)
+		size = (self.width * self._zoom, self.height * self._zoom)
+		self._shader_pgm.set_uniform("size", size)
 		self._shader_pgm.set_uniform("max_iterations", self._max_iterations)
 		self._shader_pgm.set_uniform("cutoff", self._cutoff)
 		glBindTexture(GL_TEXTURE_2D, self._lut_texture)

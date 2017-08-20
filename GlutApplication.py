@@ -72,7 +72,7 @@ class GlutApplication(object):
 		glutMainLoop()
 
 	def _draw_gl_scene(self):
-		print("DRAW")
+		pass
 
 	def _idle(self):
 		pass
