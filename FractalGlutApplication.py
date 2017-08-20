@@ -26,6 +26,7 @@ from OpenGL.GL import *
 from OpenGL.GLUT import *
 from OpenGL.GLU import *
 from ColorMixer import ColorMixer
+from ColorPalette import ColorPalette
 from geo import Viewport2d
 from NewtonSolver import Polynomial, NewtonSolver
 
@@ -158,13 +159,28 @@ class NewtonFragmentShaderProgram(GLFragmentShaderProgram):
 class FractalGlutApplication(GlutApplication):
 	def __init__(self):
 		GlutApplication.__init__(self, window_title = "Python Fractals")
-		self._lut_texture = self._create_gradient_texture("rainbow", 256)
+		#self._lut_texture = self._create_gradient_texture("traffic", 256)
+		self._lut_texture = self._create_palette_texture("flatui", [ "turquoise", "sun-flower", "carrot" ])
 		#self._shader_pgm = MandelbrotFragmentShaderProgram()
 		#self._viewport = Viewport2d(device_width = self.width, device_height = self.height, logical_center_x = -0.4, logical_center_y = 0, logical_width = 3, logical_height = 2)
-		self._shader_pgm = NewtonFragmentShaderProgram(Polynomial(-2, complex(-0.1, 0.1), complex(0.5, 0.2), complex(-1, 0.4), complex(0.3, -0.1), complex(0.1, 0.1)))
+#		self._shader_pgm = NewtonFragmentShaderProgram(Polynomial(-2, complex(-0.1, 0.1), complex(0.5, 0.2), complex(-1, 0.4), complex(0.3, -0.1), complex(0.1, 0.1)))
+		self._shader_pgm = NewtonFragmentShaderProgram(Polynomial(2, -2, 0, 1))
 		self._viewport = Viewport2d(device_width = self.width, device_height = self.height, logical_center_x = 0, logical_center_y = 0, logical_width = 3, logical_height = 2)
 		self._drag_viewport = None
 		self._dirty = True
+
+	def _create_palette_texture(self, palette_name, specific_colors = None):
+		data = bytearray()
+		palette = ColorPalette(palette_name)
+		if specific_colors is None:
+			for pixel in palette:
+				data += bytes(pixel)
+		else:
+			for name in specific_colors:
+				pixel = palette[name]
+				data += bytes(pixel)
+
+		return self.create_texture_1d_rgb(data)
 
 	def _create_gradient_texture(self, palette, data_points):
 		data = bytearray()
