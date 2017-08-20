@@ -126,4 +126,26 @@ class Viewport2dTests(unittest.TestCase):
 			self.assertAlmostEqual(logical2.x, logical.x)
 			self.assertAlmostEqual(logical2.y, logical.y)
 
+	def test_move_logical_to_device(self):
+		v = Viewport2d(device_width = 640, device_height = 480, logical_center_x = 3, logical_center_y = 5, logical_width = 7, logical_height = 11)
+		v.move_device_point_to_logical(123, 456, 1.23, 4.56)
+		self.assertEqual(v.logical_to_device(1.23, 4.56), Vector2d(123, 456))
+		self.assertEqual(v.device_to_logical(123, 456), Vector2d(1.23, 4.56))
+
+	def test_zoom_in_around_logical(self):
+		v = Viewport2d(device_width = 640, device_height = 480, logical_center_x = 3, logical_center_y = 5, logical_width = 7, logical_height = 11)
+		zoom_center = Vector2d(3.456, 2.345)
+		zoom_ctr_device_before = v.logical_to_device(zoom_center.x, zoom_center.y)
+		v.zoom_in_around_logical(1.2345, zoom_center.x, zoom_center.y)
+		zoom_ctr_device_after = v.logical_to_device(zoom_center.x, zoom_center.y)
+		self.assertEqual(zoom_ctr_device_before, zoom_ctr_device_after)
+
+	def test_zoom_in_around_device(self):
+		v = Viewport2d(device_width = 640, device_height = 480, logical_center_x = 3, logical_center_y = 5, logical_width = 7, logical_height = 11)
+		zoom_center = Vector2d(123, 456)
+		zoom_ctr_logical_before = v.device_to_logical(zoom_center.x, zoom_center.y)
+		v.zoom_in_around_device(1.2345, zoom_center.x, zoom_center.y)
+		zoom_ctr_logical_after = v.device_to_logical(zoom_center.x, zoom_center.y)
+		self.assertEqual(zoom_ctr_logical_before, zoom_ctr_logical_after)
+
 

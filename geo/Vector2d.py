@@ -65,11 +65,16 @@ class Vector2d(object):
 	def __neg__(self):
 		return Vector2d(-self.x, -self.y)
 
+	@staticmethod
+	def _almost_equal(x, y):
+		return abs(x - y) < 1e-6
+
 	def __eq__(self, other):
-		return (self.x == other.x) and (self.y == other.y)
+		return self._almost_equal(self.x, other.x) and self._almost_equal(self.y, other.y)
 
 	def __neq__(self, other):
 		return not (self == other)
 
-	def __str__(self):
+	def __repr__(self):
 		return "(%.3f, %.3f)" % (self.x, self.y)
+
