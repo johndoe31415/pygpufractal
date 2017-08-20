@@ -75,10 +75,11 @@ class NewtonFragmentShaderProgram(GLFragmentShaderProgram):
 		#define cplx_div(a, b)		vec2(((a.x * b.x + a.y * b.y) / (b.x * b.x + b.y * b.y)), ((a.y * b.x - a.x * b.y) / (b.x * b.x + b.y * b.y)))
 		#define cplx_abs(x)			length(x)
 
-		uniform sampler2D tex;
+		uniform sampler1D tex;
 		uniform vec2 center, size;
 		uniform vec2 poly_coeffs[16];
 		uniform vec2 poly_dx_coeffs[15];
+		uniform vec2 solutions[16];
 		uniform int max_iterations;
 		uniform float cutoff;
 		uniform int poly_degree;
@@ -111,12 +112,24 @@ class NewtonFragmentShaderProgram(GLFragmentShaderProgram):
 				}
 			}
 
-			gl_FragColor = vec4(c.x, c.y, 0, 1);
+			int closest = 0;
+			float min_err = length(solutions[0] - c);
+			for (int i = 1; i < poly_degree; i++) {
+				float err = length(solutions[i] - c);
+				if (err < min_err) {
+					min_err = err;
+					closest = i;
+				}
+			}
+
+			float flt_closest = closest / float(poly_degree - 1);
+			gl_FragColor = texture1D(tex, flt_closest);
 		}
 		""")
 		self._poly = polynomial
 		self._max_iterations = max_iterations
 		self._cutoff = cutoff
+		self._solutions = [ (value.real, value.imag) for value in NewtonSolver(self._poly).find_all(5, 0.1) ]
 
 	@property
 	def poly(self):
@@ -129,6 +142,7 @@ class NewtonFragmentShaderProgram(GLFragmentShaderProgram):
 		self.set_uniform("poly_coeffs", self._poly.coeffs)
 		self.set_uniform("poly_dx_coeffs", self._poly.dx().coeffs)
 		self.set_uniform("poly_degree", self._poly.degree)
+		self.set_uniform("solutions", self._solutions)
 
 
 class FractalGlutApplication(GlutApplication):
@@ -136,7 +150,7 @@ class FractalGlutApplication(GlutApplication):
 		GlutApplication.__init__(self, window_title = "Python Fractals")
 		self._lut_texture = self._create_gradient_texture("rainbow", 256)
 		#self._shader_pgm = MandelbrotFragmentShaderProgram()
-		self._shader_pgm = NewtonFragmentShaderProgram(Polynomial(-1, 0, 0, 1))
+		self._shader_pgm = NewtonFragmentShaderProgram(Polynomial(-2, complex(-0.1, 0.1), complex(0.5, 0.2), complex(-1, 0.4), complex(0.3, -0.1), complex(0.1, 0.1)))
 		print(self._shader_pgm.poly)
 		#self._viewport = Viewport2d(device_width = self.width, device_height = self.height, logical_center_x = -0.4, logical_center_y = 0, logical_width = 3, logical_height = 2)
 		self._viewport = Viewport2d(device_width = self.width, device_height = self.height, logical_center_x = 0, logical_center_y = 0, logical_width = 3, logical_height = 2)
