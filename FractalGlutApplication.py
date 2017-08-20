@@ -20,7 +20,7 @@
 #
 #       Johannes Bauer <JohannesBauer@gmx.de>
 
-from GlutApplication import GlutApplication
+from GlutApplication import GlutApplication, MouseButton, MouseButtonAction
 from GLFragmentShader import GLFragmentShaderProgram
 from OpenGL.GL import *
 from OpenGL.GLUT import *
@@ -62,8 +62,6 @@ class MandelbrotFragmentShaderProgram(GLFragmentShaderProgram):
 class FractalGlutApplication(GlutApplication):
 	def __init__(self):
 		GlutApplication.__init__(self, window_title = "Python Fractals")
-#		self._lut_texture = self.load_texture_2d("texture.pnm")
-#		self._lut_texture = self.create_texture_1d_rgb(b"aaabbbcccdddeeefffggghhhiii")
 		self._lut_texture = self._create_gradient_texture("rainbow", 256)
 		self._shader_pgm = MandelbrotFragmentShaderProgram()
 		self._center = (-0.4, 0)
@@ -82,6 +80,13 @@ class FractalGlutApplication(GlutApplication):
 	def _gl_keyboard(self, key, pos_x, pos_y):
 		if key == b"\x1b":
 			sys.exit(0)
+
+	def _gl_mouse(self, mouse_button, mouse_button_action, pos_x, pos_y):
+		if mouse_button_action == MouseButtonAction.ButtonDown:
+			if mouse_button == MouseButton.LeftButton:
+				# Change center
+				self._center = self._window_coords_to
+				pass
 
 	def _draw_gl_scene(self):
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)

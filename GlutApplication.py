@@ -129,3 +129,4 @@ class GlutApplication(object):
 		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, pnm.width, pnm.height, 0, GL_RGB, GL_UNSIGNED_BYTE, pnm.data)
 		return texture_id
+
