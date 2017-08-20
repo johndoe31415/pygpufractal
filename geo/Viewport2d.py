@@ -30,6 +30,12 @@ class Viewport2d(object):
 		self._logical_size = Vector2d(logical_width, logical_height)
 		self._keep_aspect_ratio = keep_aspect_ratio
 
+	def clone(self):
+		return Viewport2d(device_width = self.device_size.x, device_height = self.device_size.y,
+				logical_center_x = self.logical_center.x, logical_center_y = self.logical_center.y,
+				logical_width = self.logical_size.x, logical_height = self.logical_size.y,
+				keep_aspect_ratio = self._keep_aspect_ratio)
+
 	@property
 	def device_size(self):
 		return self._device_size
@@ -62,6 +68,10 @@ class Viewport2d(object):
 		current_logical = self.device_to_logical(device_x, device_y)
 		translation = Vector2d(logical_x, logical_y) - current_logical
 		self._logical_center = self._logical_center + translation
+
+	def move_relative_device(self, device_x, device_y):
+		ratio = self.device_size.comp_div(self.logical_size)
+		self._logical_center += Vector2d(device_x, device_y).comp_div(ratio)
 
 	def zoom_in_around_device(self, scalar, device_x, device_y):
 		logical = self.device_to_logical(device_x, device_y)

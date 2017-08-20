@@ -75,6 +75,10 @@ class Vector2d(object):
 	def __neq__(self, other):
 		return not (self == other)
 
+	def __iter__(self):
+		yield self.x
+		yield self.y
+
 	def __repr__(self):
 		return "(%.3f, %.3f)" % (self.x, self.y)
 

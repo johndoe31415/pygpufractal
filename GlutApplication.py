@@ -43,6 +43,9 @@ class MouseButtonAction(enum.IntEnum):
 class GlutApplication(object):
 	def __init__(self, window_title = "Unnamed Window", initial_size = (640, 480), initial_pos = (200, 200)):
 		(self._width, self._height) = initial_size
+		self._drag_button = None
+		self._drag_origin = None
+		self._drag_signalled = False
 
 		glutInit(1, "None")
 		glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE | GLUT_DEPTH | GLUT_MULTISAMPLE)
@@ -53,10 +56,10 @@ class GlutApplication(object):
 		window = glutCreateWindow(window_title.encode("latin1"))
 
 		glutDisplayFunc(self._draw_gl_scene)
-		glutIdleFunc(self._idle)
+		glutIdleFunc(self._gl_idle)
 		glutKeyboardFunc(self._gl_keyboard)
 		glutMouseFunc(self._gl_mouse_raw)
-		glutMotionFunc(self._gl_motion)
+		glutMotionFunc(self._gl_motion_raw)
 		glutReshapeFunc(self._gl_reshape)
 		self._init_gl(*initial_size)
 
@@ -74,7 +77,7 @@ class GlutApplication(object):
 	def _draw_gl_scene(self):
 		pass
 
-	def _idle(self):
+	def _gl_idle(self):
 		pass
 
 	def _gl_keyboard(self, key, pos_x, pos_y):
@@ -83,13 +86,38 @@ class GlutApplication(object):
 	def _gl_mouse(self, mouse_button, mouse_button_action, pos_x, pos_y):
 		pass
 
+	def _gl_motion(self, mouse_button, origin_x, origin_y, pos_x, pos_y):
+		pass
+#		print(mouse_button, origin_x, origin_y, pos_x, pos_y)
+
+	def _drag_start(self, mouse_button, origin_x, origin_y):
+		pass
+#		print("START", mouse_button, origin_x, origin_y)
+
+	def _drag_motion(self, mouse_button, origin_x, origin_y, pos_x, pos_y, finished):
+		pass
+#		print("MOTION", mouse_button, origin_x, origin_y, pos_x, pos_y)
+
 	def _gl_mouse_raw(self, mouse_button, mouse_button_action, pos_x, pos_y):
 		mouse_button = MouseButton(mouse_button)
 		mouse_button_action = MouseButtonAction(mouse_button_action)
+		if (mouse_button_action == MouseButtonAction.ButtonDown) and (self._drag_button is None):
+			# Start drag
+			self._drag_button = mouse_button
+			self._drag_origin = (pos_x, pos_y)
+			self._drag_signalled = False
+		elif mouse_button == self._drag_button:
+			# Finish drag
+			if self._drag_signalled:
+				self._drag_motion(self._drag_button, self._drag_origin[0], self._drag_origin[1], pos_x, pos_y, finished = True)
+			self._drag_button = None
 		return self._gl_mouse(mouse_button, mouse_button_action, pos_x, pos_y)
 
-	def _gl_motion(self, pos_x, pos_y):
-		pass
+	def _gl_motion_raw(self, pos_x, pos_y):
+		if not self._drag_signalled:
+			self._drag_start(self._drag_button, self._drag_origin[0], self._drag_origin[1])
+			self._drag_signalled = True
+		self._drag_motion(self._drag_button, self._drag_origin[0], self._drag_origin[1], pos_x, pos_y, finished = False)
 
 	def _gl_reshape(self, new_width, new_height):
 		self._width = new_width

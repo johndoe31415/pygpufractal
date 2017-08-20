@@ -26,6 +26,7 @@ from OpenGL.GL import *
 from OpenGL.GLUT import *
 from OpenGL.GLU import *
 from ColorMixer import ColorMixer
+from geo import Viewport2d
 
 class MandelbrotFragmentShaderProgram(GLFragmentShaderProgram):
 	def __init__(self):
@@ -64,10 +65,11 @@ class FractalGlutApplication(GlutApplication):
 		GlutApplication.__init__(self, window_title = "Python Fractals")
 		self._lut_texture = self._create_gradient_texture("rainbow", 256)
 		self._shader_pgm = MandelbrotFragmentShaderProgram()
-		self._center = (-0.4, 0)
-		self._zoom = 1 / 250
-		self._max_iterations = 20
-		self._cutoff = 10.0;
+		self._viewport = Viewport2d(device_width = self.width, device_height = self.height, logical_center_x = -0.4, logical_center_y = 0, logical_width = 3, logical_height = 2)
+		self._drag_viewport = None
+		self._max_iterations = 40
+		self._cutoff = 10.0
+		self._dirty = True
 
 	def _create_gradient_texture(self, palette, data_points):
 		data = bytearray()
@@ -81,14 +83,37 @@ class FractalGlutApplication(GlutApplication):
 		if key == b"\x1b":
 			sys.exit(0)
 
-	def _gl_mouse(self, mouse_button, mouse_button_action, pos_x, pos_y):
+	def _drag_start(self, mouse_button, origin_x, origin_y):
+		if mouse_button == MouseButton.LeftButton:
+			self._drag_viewport = self._viewport.clone()
+
+	def _drag_motion(self, mouse_button, origin_x, origin_y, pos_x, pos_y, finished):
+		if mouse_button == MouseButton.LeftButton:
+			self._viewport = self._drag_viewport.clone()
+			self._viewport.move_relative_device(-(pos_x - origin_x), pos_y - origin_y)
+			if finished:
+				self._drag_viewport = None
+			self._dirty = True
+
+	def _gl_mouse(self, mouse_button, mouse_button_action, device_x, device_y):
+		device_y = self.height - device_y
 		if mouse_button_action == MouseButtonAction.ButtonDown:
-			if mouse_button == MouseButton.LeftButton:
+			if mouse_button == MouseButton.MiddleButton:
 				# Change center
-				self._center = self._window_coords_to
-				pass
+				logical = self._viewport.device_to_logical(device_x, device_y)
+				self._viewport.set_logical_center(logical.x, logical.y)
+			elif mouse_button == MouseButton.WheelUp:
+				self._viewport.zoom_in_around_device(1.5, device_x, device_y)
+			elif mouse_button == MouseButton.WheelDown:
+				self._viewport.zoom_out_around_device(1.5, device_x, device_y)
+			self._draw_gl_scene()
+
+	def _gl_idle(self):
+		if self._dirty:
+			self._draw_gl_scene()
 
 	def _draw_gl_scene(self):
+		self._dirty = False
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
 
 		glViewport(0, 0, self.width, self.height)
@@ -104,9 +129,8 @@ class FractalGlutApplication(GlutApplication):
 		glLoadIdentity()
 
 		glUseProgram(self._shader_pgm.program)
-		self._shader_pgm.set_uniform("center", self._center)
-		size = (self.width * self._zoom, self.height * self._zoom)
-		self._shader_pgm.set_uniform("size", size)
+		self._shader_pgm.set_uniform("center", tuple(self._viewport.logical_center))
+		self._shader_pgm.set_uniform("size", tuple(self._viewport.logical_size))
 		self._shader_pgm.set_uniform("max_iterations", self._max_iterations)
 		self._shader_pgm.set_uniform("cutoff", self._cutoff)
 		glBindTexture(GL_TEXTURE_1D, self._lut_texture)
