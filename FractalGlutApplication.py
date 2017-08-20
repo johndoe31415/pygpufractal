@@ -84,12 +84,15 @@ class NewtonFragmentShaderProgram(GLFragmentShaderProgram):
 		uniform float cutoff;
 		uniform int poly_degree;
 
+		/* Calculate complex exponentation base ^ exponent */
 		vec2 cplx_pow(vec2 base, float exponent) {
 			float absval = pow(cplx_abs(base), exponent);
 			float arg = exponent * atan2(base.y, base.x);
 			return vec2(absval * cos(arg), absval * sin(arg));
 		}
 
+		/* Evaluate the polynomial with the given coefficients "coeffs" at the
+		position "x" */
 		vec2 poly_eval(vec2 coeffs[], int coeff_cnt, vec2 x) {
 			vec2 result = vec2(0, 0);
 			for (int exponent = 0; exponent < coeff_cnt; exponent++) {
@@ -103,6 +106,8 @@ class NewtonFragmentShaderProgram(GLFragmentShaderProgram):
 			c.x = center.x + (size.x * (gl_TexCoord[0].x - 0.5));
 			c.y = center.y + (size.y * (gl_TexCoord[0].y - 0.5));
 
+			/* First, find convergent value of Newton solver with the given
+			starting point "c" */
 			for (int i = 0; i < max_iterations; i++) {
 				vec2 new_c = c - cplx_div(poly_eval(poly_coeffs, poly_degree + 1, c), poly_eval(poly_dx_coeffs, poly_degree, c));
 				float err = length(new_c - c);
@@ -112,17 +117,20 @@ class NewtonFragmentShaderProgram(GLFragmentShaderProgram):
 				}
 			}
 
-			int closest = 0;
+			/* Then, among the previously pre-computed solutions, pick the one
+			that most closely matches */
+			int closest_index = 0;
 			float min_err = length(solutions[0] - c);
 			for (int i = 1; i < poly_degree; i++) {
 				float err = length(solutions[i] - c);
 				if (err < min_err) {
 					min_err = err;
-					closest = i;
+					closest_index = i;
 				}
 			}
 
-			float flt_closest = closest / float(poly_degree - 1);
+			/* Convert into a float and lookup color value */
+			float flt_closest = closest_index / float(poly_degree - 1);
 			gl_FragColor = texture1D(tex, flt_closest);
 		}
 		""")
