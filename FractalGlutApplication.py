@@ -106,7 +106,8 @@ class NewtonFragmentShaderProgram(GLFragmentShaderProgram):
 
 			/* First, find convergent value of Newton solver with the given
 			starting point "c" */
-			for (int i = 0; i < max_iterations; i++) {
+			int iterations;
+			for (iterations = 0; iterations < max_iterations; iterations++) {
 				vec2 new_c = c - cplx_div(poly_eval(poly_coeffs, poly_degree + 1, c), poly_eval(poly_dx_coeffs, poly_degree, c));
 				float err = length(new_c - c);
 				c = new_c;
@@ -129,7 +130,10 @@ class NewtonFragmentShaderProgram(GLFragmentShaderProgram):
 
 			/* Convert into a float and lookup color value */
 			float flt_closest = closest_index / float(poly_degree - 1);
-			gl_FragColor = texture1D(tex, flt_closest);
+			vec4 base_color = texture1D(tex, flt_closest);
+			float flt_iterations = float(iterations - (max_iterations / 4)) / max_iterations;
+			vec4 darken = vec4(1, 1, 1, 0) * flt_iterations;
+			gl_FragColor = base_color - darken;
 		}
 		""")
 		self._poly = polynomial
@@ -155,10 +159,10 @@ class FractalGlutApplication(GlutApplication):
 	def __init__(self):
 		GlutApplication.__init__(self, window_title = "Python Fractals")
 		self._lut_texture = self._create_gradient_texture("rainbow", 256)
-		self._shader_pgm = MandelbrotFragmentShaderProgram()
-		self._viewport = Viewport2d(device_width = self.width, device_height = self.height, logical_center_x = -0.4, logical_center_y = 0, logical_width = 3, logical_height = 2)
-		#self._shader_pgm = NewtonFragmentShaderProgram(Polynomial(-2, complex(-0.1, 0.1), complex(0.5, 0.2), complex(-1, 0.4), complex(0.3, -0.1), complex(0.1, 0.1)))
-		#self._viewport = Viewport2d(device_width = self.width, device_height = self.height, logical_center_x = 0, logical_center_y = 0, logical_width = 3, logical_height = 2)
+		#self._shader_pgm = MandelbrotFragmentShaderProgram()
+		#self._viewport = Viewport2d(device_width = self.width, device_height = self.height, logical_center_x = -0.4, logical_center_y = 0, logical_width = 3, logical_height = 2)
+		self._shader_pgm = NewtonFragmentShaderProgram(Polynomial(-2, complex(-0.1, 0.1), complex(0.5, 0.2), complex(-1, 0.4), complex(0.3, -0.1), complex(0.1, 0.1)))
+		self._viewport = Viewport2d(device_width = self.width, device_height = self.height, logical_center_x = 0, logical_center_y = 0, logical_width = 3, logical_height = 2)
 		self._drag_viewport = None
 		self._dirty = True
 
