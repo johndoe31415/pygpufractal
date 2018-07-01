@@ -1,4 +1,10 @@
 {
+	"custom": [
+		{ "name": "turquoise",		"rgb": "1abc9c" },
+		{ "name": "midnight-blue",	"rgb": "2c3e50" },
+		{ "name": "pomegranate",	"rgb": "c0392b" },
+		{ "name": "belize-hole",	"rgb": "2980b9" }
+	],
 	"flatui": [
 		{ "name": "turquoise",		"rgb": "1abc9c" },
 		{ "name": "emerland",		"rgb": "2ecc71" },

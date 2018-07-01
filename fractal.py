@@ -47,6 +47,9 @@ def complex_number(text):
 	return ((1j * imag) + real) * rnd
 
 parser = FriendlyArgumentParser()
+parser.add_argument("--palette-json", metavar = "filename", type = str, default = "palettes.json", help = "JSON file that holds all palette definitions, defaults to %(default)s.")
+parser.add_argument("--palette-samples", metavar = "count", type = int, default = 256, help = "Number of samples to use for palette sampling. Defaults to %(default)d.")
+parser.add_argument("-p", "--palette", metavar = "name", type = str, default = "flatui", help = "Palette to choose from palette definition file. Defaults to %(default)s.")
 parser.add_argument("-f", "--fractal", choices = [ "newton", "mandelbrot" ], default = "newton", help = "Determines the type of solver that is used. Can be any of %(choices)s, defaults to %(default)s.")
 parser.add_argument("-c", "--center", metavar = "x,y", type = complex_number, default = "0,0", help = "Center image initially around these x,y (real/imaginary) coordinates. Defaults to %(default)s.")
 parser.add_argument("-v", "--verbose", action = "count", default = 0, help = "Be more verbose.")

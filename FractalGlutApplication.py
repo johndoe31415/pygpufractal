@@ -25,8 +25,7 @@ from GLFragmentShader import GLFragmentShaderProgram
 from OpenGL.GL import *
 from OpenGL.GLUT import *
 from OpenGL.GLU import *
-from ColorMixer import ColorMixer
-from ColorPalette import ColorPalette
+from AdvancedColorPalette import AdvancedColorPalette
 from geo import Viewport2d
 from NewtonSolver import Polynomial, NewtonSolver
 
@@ -159,8 +158,8 @@ class NewtonFragmentShaderProgram(GLFragmentShaderProgram):
 class FractalGlutApplication(GlutApplication):
 	def __init__(self, args):
 		GlutApplication.__init__(self, window_title = "Python Fractals")
-		self._lut_texture = self._create_gradient_texture("traffic", 256)
-		#self._lut_texture = self._create_palette_texture("flatui", [ "turquoise", "sun-flower", "carrot" ])
+		palette = AdvancedColorPalette.load_from_json(args.palette_json, args.palette)
+		self._lut_texture = self._create_gradient_texture(palette, args.palette_samples)
 
 		if args.fractal == "mandelbrot":
 			self._shader_pgm = MandelbrotFragmentShaderProgram()
@@ -177,24 +176,10 @@ class FractalGlutApplication(GlutApplication):
 		self._drag_viewport = None
 		self._dirty = True
 
-	def _create_palette_texture(self, palette_name, specific_colors = None):
-		data = bytearray()
-		palette = ColorPalette(palette_name)
-		if specific_colors is None:
-			for pixel in palette:
-				data += bytes(pixel)
-		else:
-			for name in specific_colors:
-				pixel = palette[name]
-				data += bytes(pixel)
-
-		return self.create_texture_1d_rgb(data)
-
 	def _create_gradient_texture(self, palette, data_points):
 		data = bytearray()
-		color_mixer = ColorMixer(palette)
 		for i in range(data_points):
-			pixel = color_mixer[i / (data_points - 1)]
+			pixel = palette[i / (data_points - 1)]
 			data += bytes(pixel)
 		return self.create_texture_1d_rgb(data)
 
