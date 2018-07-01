@@ -54,7 +54,11 @@ Which produces:
 
 ![x^3 + 3](https://raw.githubusercontent.com/johndoe31415/pygpufractal/master/docs/newton1.png)
 
-Alternatively, you can just type 'r' or 'R' for coefficients and see where it takes you:
+You can use the mouse to move around and the mousewheel to zoom in and out of
+the area.
+
+Alternatively, you can just type 'r' or 'R' for coefficients and see where it
+takes you:
 
 ![Other Newton Fractal](https://raw.githubusercontent.com/johndoe31415/pygpufractal/master/docs/newton2.png)
 
