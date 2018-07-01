@@ -37,10 +37,16 @@ class GLFragmentShaderProgram(object):
 			raise Exception("Shader linking failed: %s" % (glGetProgramInfoLog(self._program).decode("utf-8")))
 		glDeleteShader(self._shader)
 
-	def set_uniform(self, uniform_name, value):
+	def set_uniform(self, uniform_name, value, error = "except"):
 		uniform = glGetUniformLocation(self._program, uniform_name)
 		if uniform < 0:
-			raise Exception("No such uniform in shader program: %s" % (uniform_name))
+			msg = "No such uniform in shader program: %s" % (uniform_name)
+			if error == "warn":
+				print("Warning: %s" % (msg))
+			elif error == "ignore":
+				pass
+			else:
+				raise Exception(msg)
 #		print("Setting uniform \"%s\" (%d) to %s" % (uniform_name, uniform, str(value)))
 		if isinstance(value, tuple) and (len(value) == 2):
 			glUniform2f(uniform, value[0], value[1])

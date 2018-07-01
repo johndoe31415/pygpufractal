@@ -69,18 +69,20 @@ class MandelbrotFragmentShaderProgram(GLFragmentShaderProgram):
 class NewtonFragmentShaderProgram(GLFragmentShaderProgram):
 	def __init__(self, polynomial, max_iterations = 50, cutoff = 1e-4):
 		GLFragmentShaderProgram.__init__(self, """\
+		#define MAX_POLY_DEGREE		16
 		#define cplx_mul(a, b)		vec2(a.x * b.x - a.y * b.y, a.x * b.y + a.y * b.x)
 		#define cplx_div(a, b)		vec2(((a.x * b.x + a.y * b.y) / (b.x * b.x + b.y * b.y)), ((a.y * b.x - a.x * b.y) / (b.x * b.x + b.y * b.y)))
 		#define cplx_abs(x)			length(x)
 
 		uniform sampler1D tex;
 		uniform vec2 center, size;
-		uniform vec2 poly_coeffs[16];
-		uniform vec2 poly_dx_coeffs[15];
-		uniform vec2 solutions[16];
+		uniform vec2 poly_coeffs[MAX_POLY_DEGREE];
+		uniform vec2 poly_dx_coeffs[MAX_POLY_DEGREE - 1];
+		uniform vec2 solutions[MAX_POLY_DEGREE];
 		uniform int max_iterations;
 		uniform float cutoff;
 		uniform int poly_degree;
+		uniform float darken_brighten_shift, darken_brighten_clamp, darken_brighten_exp;
 
 		/* Calculate complex exponentation base ^ exponent */
 		vec2 cplx_pow(vec2 base, float exponent) {
@@ -131,9 +133,25 @@ class NewtonFragmentShaderProgram(GLFragmentShaderProgram):
 			/* Convert into a float and lookup color value */
 			float flt_closest = closest_index / float(poly_degree - 1);
 			vec4 base_color = texture1D(tex, flt_closest);
-			float flt_iterations = float(iterations - (max_iterations / 4)) / max_iterations;
-			vec4 darken = vec4(1, 1, 1, 0) * flt_iterations;
-			gl_FragColor = base_color - darken;
+
+			/* Darken or brighten by iteration count; convert to value from -1 to 1 first */
+			float flt_iterations = (float(iterations) / float(max_iterations) * 2.0) - 1.0;
+
+			/* Then shift value according to shifting uniform */
+			flt_iterations += darken_brighten_shift;
+
+			/* Finally clamp to final value */
+			flt_iterations = clamp(flt_iterations, -1, 1) * darken_brighten_clamp;
+
+			/* Finally exponentiate it according to uniform darken/brighten exponent */
+			if (flt_iterations >= 0) {
+				flt_iterations = pow(flt_iterations, darken_brighten_exp);
+			} else {
+				flt_iterations = -pow(-flt_iterations, darken_brighten_exp);
+			}
+
+			vec4 add_color = vec4(1, 1, 1, 0) * flt_iterations;
+			gl_FragColor = base_color + add_color;
 		}
 		""")
 		self._poly = polynomial
@@ -153,7 +171,9 @@ class NewtonFragmentShaderProgram(GLFragmentShaderProgram):
 		self.set_uniform("poly_dx_coeffs", self._poly.dx().coeffs)
 		self.set_uniform("poly_degree", self._poly.degree)
 		self.set_uniform("solutions", self._solutions)
-
+		self.set_uniform("darken_brighten_shift", 0.75, error = "warn")
+		self.set_uniform("darken_brighten_clamp", 0.5, error = "warn")
+		self.set_uniform("darken_brighten_exp", 0.6, error = "warn")
 
 class FractalGlutApplication(GlutApplication):
 	def __init__(self, args):
