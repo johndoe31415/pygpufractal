@@ -1,8 +1,9 @@
 # pygpufractal
 [![Build Status](https://travis-ci.org/johndoe31415/pygpufractal.svg?branch=master)](https://travis-ci.org/johndoe31415/pygpufractal)
 
-This is a small example of how to try to calculate fractals on GPUs using
-OpenGL, the OpenGL shader language (GLSL) and Python.
+This is a small example of how to calculate fractals on the GPU using OpenGL,
+the OpenGL shader language (GLSL) and Python. It implements a Newton solver and
+a Mandelbrot solver in GLSL.
 
 # Usage
 You can specify the type of fractal you want on the command line. Here's the help page:
