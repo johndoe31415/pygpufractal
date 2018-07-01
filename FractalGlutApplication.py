@@ -157,15 +157,23 @@ class NewtonFragmentShaderProgram(GLFragmentShaderProgram):
 
 
 class FractalGlutApplication(GlutApplication):
-	def __init__(self):
+	def __init__(self, args):
 		GlutApplication.__init__(self, window_title = "Python Fractals")
-		#self._lut_texture = self._create_gradient_texture("traffic", 256)
-		self._lut_texture = self._create_palette_texture("flatui", [ "turquoise", "sun-flower", "carrot" ])
-		#self._shader_pgm = MandelbrotFragmentShaderProgram()
-		#self._viewport = Viewport2d(device_width = self.width, device_height = self.height, logical_center_x = -0.4, logical_center_y = 0, logical_width = 3, logical_height = 2)
-#		self._shader_pgm = NewtonFragmentShaderProgram(Polynomial(-2, complex(-0.1, 0.1), complex(0.5, 0.2), complex(-1, 0.4), complex(0.3, -0.1), complex(0.1, 0.1)))
-		self._shader_pgm = NewtonFragmentShaderProgram(Polynomial(2, -2, 0, 1))
-		self._viewport = Viewport2d(device_width = self.width, device_height = self.height, logical_center_x = 0, logical_center_y = 0, logical_width = 3, logical_height = 2)
+		self._lut_texture = self._create_gradient_texture("traffic", 256)
+		#self._lut_texture = self._create_palette_texture("flatui", [ "turquoise", "sun-flower", "carrot" ])
+
+		if args.fractal == "mandelbrot":
+			self._shader_pgm = MandelbrotFragmentShaderProgram()
+			if args.verbose >= 1:
+				print("Showing Mandelbrot fractal")
+		elif args.fractal == "newton":
+			polynomial = Polynomial(*args.coeffs)
+			self._shader_pgm = NewtonFragmentShaderProgram(polynomial)
+			if args.verbose >= 1:
+				print("Showing Newton fractal with polynomial: %s" % (polynomial))
+		self._viewport = Viewport2d(device_width = self.width, device_height = self.height, logical_center_x = args.center.real, logical_center_y = args.center.imag, logical_width = 3, logical_height = 2)
+		if args.verbose >= 1:
+			print("Current viewport: %s" % (self._viewport))
 		self._drag_viewport = None
 		self._dirty = True
 

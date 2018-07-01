@@ -29,17 +29,23 @@ class Polynomial(object):
 		return len(self._coeffs) - 1
 
 	def __repr__(self):
+		def _coeff(value):
+			if value.imag == 0:
+				return str(value.real)
+			else:
+				return str(value)
+
 		terms = [ ]
 		for (exponent, coeff) in reversed(list(enumerate(self._coeffs))):
 			if coeff == 0:
 				continue
 
 			if exponent == 0:
-				terms.append("%s" % (coeff))
+				terms.append("%s" % (_coeff(coeff)))
 			elif exponent == 1:
-				terms.append("%s x" % (coeff))
+				terms.append("%s x" % (_coeff(coeff)))
 			else:
-				terms.append("%s x^%d" % (coeff, exponent))
+				terms.append("%s x^%d" % (_coeff(coeff), exponent))
 		return " + ".join(terms)
 
 	def dx(self):
