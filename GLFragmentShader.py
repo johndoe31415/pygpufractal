@@ -27,6 +27,7 @@ from OpenGL.GLU import *
 
 class GLFragmentShaderProgram(object):
 	def __init__(self, shader_source):
+		self._uniforms = { }
 		shader_source = textwrap.dedent(shader_source)
 		self._program = glCreateProgram()
 		self._shader = self._compile_shader(shader_source, GL_FRAGMENT_SHADER)
@@ -34,8 +35,11 @@ class GLFragmentShaderProgram(object):
 		glLinkProgram(self._program)
 		link_status = glGetProgramiv(self._program, GL_LINK_STATUS)
 		if link_status == 0:
-			raise Exception("Shader linking failed: %s" % (glGetProgramInfoLog(self._program).decode("utf-8")))
+			raise Exception("Shader linking failed: %s" % (link_status, glGetProgramInfoLog(self._program)))
 		glDeleteShader(self._shader)
+
+	def set_property(self, key, value):
+		self._uniforms[key] = value
 
 	def set_uniform(self, uniform_name, value, error = "except"):
 		uniform = glGetUniformLocation(self._program, uniform_name)
@@ -74,6 +78,8 @@ class GLFragmentShaderProgram(object):
 
 	def use(self):
 		glUseProgram(self.program)
+		for (key, value) in self._uniforms.items():
+			self.set_uniform(key, value)
 
 class TrivialFragmentShaderProgram(GLFragmentShaderProgram):
 	"""Shader that colors entire screen red."""

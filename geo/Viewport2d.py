@@ -25,10 +25,13 @@ class Viewport2d(object):
 	def __init__(self, device_width, device_height, logical_center_x = 0, logical_center_y = 0, logical_width = 1, logical_height = 1, keep_aspect_ratio = False):
 		assert(logical_width > 0)
 		assert(logical_height > 0)
-		self.set_device_size(device_width, device_height)
+		self._keep_aspect_ratio = keep_aspect_ratio
+		if self._keep_aspect_ratio:
+			logical_width = logical_width * device_width / device_height
+		self._device_size = Vector2d(device_width, device_height)
 		self._logical_center = Vector2d(logical_center_x, logical_center_y)
 		self._logical_size = Vector2d(logical_width, logical_height)
-		self._keep_aspect_ratio = keep_aspect_ratio
+		self.set_device_size(device_width, device_height)
 
 	def clone(self):
 		return Viewport2d(device_width = self.device_size.x, device_height = self.device_size.y,
@@ -102,7 +105,11 @@ class Viewport2d(object):
 	def set_device_size(self, device_width, device_height):
 		assert(device_width > 0)
 		assert(device_height > 0)
+		width_scale = device_width / self._device_size.x
+		height_scale = device_height / self._device_size.y
 		self._device_size = Vector2d(device_width, device_height)
+		if self._keep_aspect_ratio:
+			self._logical_size = Vector2d(self._logical_size.x * width_scale, self._logical_size.y * height_scale)
 
 	def set_logical_center(self, logical_x, logical_y):
 		self._logical_center = Vector2d(logical_x, logical_y)

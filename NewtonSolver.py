@@ -61,6 +61,12 @@ class Polynomial(object):
 	def coeffs(self):
 		return [ (coeff.real, coeff.imag) for coeff in self._coeffs ]
 
+	def __eq__(self, other):
+		return (self.degree == other.degree) and (sum(abs(x - y) for (x, y) in zip(self._coeffs, other._coeffs)) < 1e-6)
+
+	def __neq__(self, other):
+		return not (self == other)
+
 class ApproxEqualComplex(object):
 	def __init__(self, value):
 		self._value = value
@@ -85,6 +91,14 @@ class NewtonSolver(object):
 	def __init__(self, poly):
 		self._poly = poly
 		self._poly_dx = poly.dx()
+
+	@property
+	def poly(self):
+		return self._poly
+
+	@property
+	def poly_dx(self):
+		return self._poly_dx
 
 	def find_all(self, field_size, step_size):
 		values = set()

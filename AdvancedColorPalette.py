@@ -77,6 +77,12 @@ class AdvancedColorPalette(object):
 			raise KeyError("No palette '%s' contained in JSON file %s." % (palettename, filename))
 		return cls(palettes[palettename])
 
+	@classmethod
+	def get_schema_from_json(cls, filename):
+		with open(filename) as f:
+			palettes = json.load(f)
+		return sorted(palettes.keys())
+
 	@staticmethod
 	def _clip(value):
 		if value < 0:
