@@ -22,7 +22,7 @@
 
 from GLFragmentShader import GLFragmentShaderProgram
 
-class MandelbrotFragmentShaderProgram(GLFragmentShaderProgram):
+class MandelbrotJuliaFragmentShaderProgram(GLFragmentShaderProgram):
 	def __init__(self):
 		GLFragmentShaderProgram.__init__(self, """\
 		#define cplx_mul(a, b)		vec2(a.x * b.x - a.y * b.y, a.x * b.y + a.y * b.x)
@@ -31,6 +31,8 @@ class MandelbrotFragmentShaderProgram(GLFragmentShaderProgram):
 		uniform vec2 center, size;
 		uniform int max_iterations;
 		uniform float cutoff;
+		uniform int is_mandelbrot;
+		uniform vec2 julia_coeff;
 
 		void main() {
 			vec2 c;
@@ -40,7 +42,10 @@ class MandelbrotFragmentShaderProgram(GLFragmentShaderProgram):
 			int iteration;
 			vec2 cur = c;
 			for (iteration = 0; iteration < max_iterations; iteration++) {
-				cur = cplx_mul(cur, cur) + c;
+				/* Mandelbrot: Add c every step of the iteration.
+				   Julia     : Add c only the first time, the Julia value every other iteration step.
+				*/
+				cur = cplx_mul(cur, cur) + ((iteration == 0) ? c : (is_mandelbrot * c)) + julia_coeff;
 				float abs_value = length(cur);
 				if (abs_value > cutoff) {
 					break;
@@ -51,5 +56,15 @@ class MandelbrotFragmentShaderProgram(GLFragmentShaderProgram):
 			gl_FragColor = texture1D(tex, flt_iteration);
 		}
 		""")
-		self._uniforms["max_iterations"] = 40
-		self._uniforms["cutoff"] = 10.0
+		self.set_property("max_iterations", 40)
+		self.set_property("cutoff", 10.0)
+		self.use_mandelbrot()
+
+	def use_mandelbrot(self):
+		self.set_property("is_mandelbrot", 1)
+		self.set_property("julia_coeff", complex(0))
+
+	def use_julia(self, julia_coeff):
+		assert(isinstance(julia_coeff, complex))
+		self.set_property("is_mandelbrot", 0)
+		self.set_property("julia_coeff", julia_coeff)

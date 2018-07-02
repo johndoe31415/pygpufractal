@@ -23,7 +23,7 @@ from geo import Viewport2d
 from OpenGL.GL import *
 from OpenGL.GLU import *
 from NewtonFragmentShaderProgram import NewtonFragmentShaderProgram
-from MandelbrotFragmentShaderProgram import MandelbrotFragmentShaderProgram
+from MandelbrotJuliaFragmentShaderProgram import MandelbrotJuliaFragmentShaderProgram
 from NewtonSolver import Polynomial
 from AdvancedColorPalette import AdvancedColorPalette
 
@@ -42,7 +42,8 @@ class GLHandler(object):
 			self._shader_pgm_input = shader_pgm_input
 			shader_pgm_class = {
 				"newton":		NewtonFragmentShaderProgram,
-				"mandelbrot":	MandelbrotFragmentShaderProgram,
+				"mandelbrot":	MandelbrotJuliaFragmentShaderProgram,
+				"julia":		MandelbrotJuliaFragmentShaderProgram,
 			}[scene_params["type"]]
 			self._shader_pgm = shader_pgm_class()
 

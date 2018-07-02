@@ -69,6 +69,7 @@ class FractalGTKApplication(object):
 			"type":						{
 				0:	"newton",
 				1:	"mandelbrot",
+				2:	"julia",
 			}[self._builder.get_object("fractal_type_combobox").get_active()],
 			"properties": {
 				"max_iterations":			round(self._builder.get_object("max_iterations_scale").get_value()),
@@ -82,6 +83,16 @@ class FractalGTKApplication(object):
 				"darken_brighten_exp":		self._builder.get_object("darken_brighten_exp_scale").get_value(),
 				"darken_brighten_shift":	self._builder.get_object("darken_brighten_shift_scale").get_value(),
 				"darken_brighten_clamp":	self._builder.get_object("darken_brighten_clamp_scale").get_value(),
+			})
+		elif scene_params["type"] == "mandelbrot":
+			scene_params["properties"].update({
+				"is_mandelbrot":			1,
+				"julia_coeff":				complex(0),
+			})
+		elif scene_params["type"] == "julia":
+			scene_params["properties"].update({
+				"is_mandelbrot":			0,
+				"julia_coeff":				complex(0.5, 0.25),
 			})
 
 		self._gl_handler.render(glctx, scene_params)

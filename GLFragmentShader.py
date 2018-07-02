@@ -60,6 +60,8 @@ class GLFragmentShaderProgram(object):
 			glUniform1i(uniform, value)
 		elif isinstance(value, float):
 			glUniform1f(uniform, value)
+		elif isinstance(value, complex):
+			glUniform2f(uniform, value.real, value.imag)
 		else:
 			raise Exception("Do not know how to set uniform \"%s\" to value of unknown type: %s" % (uniform_name, str(value)))
 

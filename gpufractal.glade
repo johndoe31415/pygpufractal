@@ -53,6 +53,9 @@
       <row>
         <col id="0" translatable="yes">Mandelbrot</col>
       </row>
+      <row>
+        <col id="0" translatable="yes">Julia</col>
+      </row>
     </data>
   </object>
   <object class="GtkWindow" id="options_window">
